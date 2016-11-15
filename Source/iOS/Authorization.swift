@@ -56,4 +56,28 @@ extension Session {
         }
 
     }
+    
+    public func authorizeWithToken(viewController: UIViewController, completionHandler: (String?, NSError?)->()) {
+        
+        if self.authorizer == nil {
+            let block = {
+                (accessToken: String?, error: NSError?) -> Void in
+                self.authorizer = nil
+                completionHandler(accessToken, error)
+            }
+            
+            if self.canUseNativeOAuth() {
+                let nativeAuthorizer = NativeTouchAuthorizer(configuration: self.configuration)
+                nativeAuthorizer.authorize(block)
+                self.authorizer = nativeAuthorizer
+            } else {
+                let touchAuthorizer = TouchAuthorizer(configuration: self.configuration)
+                touchAuthorizer.authorize(viewController, delegate: nil, completionHandler: block)
+                self.authorizer = touchAuthorizer
+            }
+        }
+        
+    }
+    
+    
 }
