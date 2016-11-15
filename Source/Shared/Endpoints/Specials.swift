@@ -8,13 +8,13 @@
 
 import Foundation
 
-open class Specials: Endpoint {
+public class Specials: Endpoint {
     override var endpoint: String {
         return "specials"
     }
     
     /** https://developer.foursquare.com/docs/specials/specials */
-    open func get(_ specialId: String, venueId: String,
+    public func get(specialId: String, venueId: String,
         parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
             var allParameters = [Parameter.venueId:venueId]
             allParameters += parameters
@@ -24,19 +24,19 @@ open class Specials: Endpoint {
     // MARK: - General
     
     /** https://developer.foursquare.com/docs/specials/add */
-    open func add(_ parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
+    public func add(parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "add"
         return self.postWithPath(path, parameters: parameters, completionHandler: completionHandler)
     }
     
     /** https://developer.foursquare.com/docs/specials/list */
-    open func all(_ parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
+    public func all(parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "list"
         return self.getWithPath(path, parameters: parameters, completionHandler: completionHandler)
     }
     
     /** https://developer.foursquare.com/docs/specials/search */
-    open func search(_ ll: String, parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
+    public func search(ll: String, parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "search"
         var allParameters = [Parameter.ll:ll]
         allParameters += parameters
@@ -46,7 +46,7 @@ open class Specials: Endpoint {
     // MARK: - Actions
     
     /** https://developer.foursquare.com/docs/specials/flag */
-    open func flag(_ specialId: String, venueId: String,
+    public func flag(specialId: String, venueId: String,
         problem: String, parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
             let path = "add"
             var allParameters = ["ID": specialId, Parameter.venueId:venueId, Parameter.problem:problem]

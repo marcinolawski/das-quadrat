@@ -9,14 +9,14 @@
 import Foundation
 
 public enum FoursquareResponse {
-    case result(Dictionary<String, String>)
-    case error(NSError)
+    case Result(Dictionary<String, String>)
+    case Error(NSError)
 }
 
-open class Task {
-    fileprivate var task: URLSessionTask?
-    fileprivate weak var session: Session?
-    fileprivate let completionHandler: ResponseClosure?
+public class Task {
+    private var task: NSURLSessionTask?
+    private weak var session: Session?
+    private let completionHandler: ResponseClosure?
     
     var request: Request
     
@@ -32,7 +32,7 @@ open class Task {
     func constructURLSessionTask() {fatalError("Use subclasses!")}
     
     /** Starts the task. */
-    open func start() {
+    public func start() {
         if self.session == nil {
             fatalError("No session for this task.")
         }
@@ -50,7 +50,7 @@ open class Task {
         Returns error with NSURLErrorDomain and code NSURLErrorCancelled in `completionHandler`.
         Hint: use `isCancelled()` on `Response` object.
     */
-    open func cancel() {
+    public func cancel() {
         self.task?.cancel()
         self.task = nil
     }
@@ -59,58 +59,59 @@ open class Task {
 class DataTask: Task {
     override func constructURLSessionTask() {
         let URLsession = self.session?.URLSession
-        self.task = URLsession?.dataTask(with: request.URLRequest(), completionHandler: {
+        self.task = URLsession?.dataTaskWithRequest(request.URLRequest()) {
             (data, response, error) -> Void in
             self.session?.networkActivityController?.endNetworkActivity(self.networkActivityId)
             
-            let result = Result.resultFromURLSessionResponse(response, data: data, error: error as NSError?)
+            let result = Result.resultFromURLSessionResponse(response, data: data, error: error)
             self.session?.processResult(result)
-            self.session?.completionQueue.addOperation {
-                self.completionHandler?(result)
+            self.session?.completionQueue.addOperationWithBlock {
+                self.completionHandler?(result: result)
                 return Void()
             }
-        }) 
+        }
     }
 }
 
 class UploadTask: Task {
-    var  fileURL: URL?
+    var  fileURL: NSURL?
     
     override func constructURLSessionTask() {
         // swiftlint:disable force_cast
-        var mutableRequest = self.request.URLRequest()
+        let mutableRequest = self.request.URLRequest().mutableCopy() as! NSMutableURLRequest
         
-        let boundary = UUID().uuidString
+        let boundary = NSUUID().UUIDString
         let contentType = "multipart/form-data; boundary=" + boundary
         mutableRequest.addValue(contentType, forHTTPHeaderField: "Content-Type")
         let body = NSMutableData()
         let appendStringBlock = {
             (string: String) in
-            body.append(string.data(using: String.Encoding.utf8, allowLossyConversion: false)!)
+            body.appendData(string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!)
         }
-
-        let fileExtension = self.fileURL!.pathExtension
+        var extention = self.fileURL!.pathExtension
+        if extention == nil {
+            extention = "png"
+        }
         appendStringBlock("\r\n--\(boundary)\r\n")
-        appendStringBlock("Content-Disposition: form-data; name=\"photo\"; filename=\"photo.\(fileExtension)\"\r\n")
-        appendStringBlock("Content-Type: image/\(fileExtension)\r\n\r\n")
-        if let imageData = try? Data(contentsOf: self.fileURL!) {
-            body.append(imageData)
+        appendStringBlock("Content-Disposition: form-data; name=\"photo\"; filename=\"photo.\(extention)\"\r\n")
+        appendStringBlock("Content-Type: image/\(extention)\r\n\r\n")
+        if let imageData = NSData(contentsOfURL: self.fileURL!) {
+            body.appendData(imageData)
         } else {
             fatalError("Can't read data at URL: \(self.fileURL!)")
         }
         appendStringBlock("\r\n--\(boundary)--\r\n")
         
-        self.task = self.session?.URLSession.uploadTask(with: mutableRequest as URLRequest, from: body as Data,
-                                                        completionHandler: {
-                                                            (data, response, error) -> Void in
+        self.task = self.session?.URLSession.uploadTaskWithRequest(mutableRequest, fromData: body) {
+            (data, response, error) -> Void in
+            self.session?.networkActivityController?.endNetworkActivity(self.networkActivityId)
             
-                self.session?.networkActivityController?.endNetworkActivity(self.networkActivityId)
-                let result = Result.resultFromURLSessionResponse(response, data: data, error: error as NSError?)
-                self.session?.processResult(result)
-                self.session?.completionQueue.addOperation {
-                    self.completionHandler?(result)
-                    return Void()
-                }
-        })
+            let result = Result.resultFromURLSessionResponse(response, data: data, error: error)
+            self.session?.processResult(result)
+            self.session?.completionQueue.addOperationWithBlock {
+                self.completionHandler?(result: result)
+                return Void()
+            }
+        }
     }
 }

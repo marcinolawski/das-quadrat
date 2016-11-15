@@ -8,26 +8,26 @@
 
 import Foundation
 
-open class Events: Endpoint {
+public class Events: Endpoint {
     override var endpoint: String {
         return "events"
     }
     
     /** https://developer.foursquare.com/docs/events/events */
-    open func get(_ eventId: String, completionHandler: ResponseClosure? = nil) -> Task {
+    public func get(eventId: String, completionHandler: ResponseClosure? = nil) -> Task {
         return self.getWithPath(eventId, parameters: nil, completionHandler: completionHandler)
     }
     
     // MARK: - General
     
     /** https://developer.foursquare.com/docs/events/categories */
-    open func categories(_ completionHandler: ResponseClosure? = nil) -> Task {
+    public func categories(completionHandler: ResponseClosure? = nil) -> Task {
         let path = "categories"
         return self.getWithPath(path, parameters: nil, completionHandler: completionHandler)
     }
     
     /** https://developer.foursquare.com/docs/events/search */
-    open func search(_ domain: String, parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
+    public func search(domain: String, parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "search"
         var allParameters = [Parameter.domain: domain]
         allParameters += parameters
@@ -37,7 +37,7 @@ open class Events: Endpoint {
     // MARK: - Actions
     
     /** https://developer.foursquare.com/docs/events/add */
-    open func add(_ parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
+    public func add(parameters: Parameters?, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "add"
         return self.getWithPath(path, parameters: parameters, completionHandler: completionHandler)
     }

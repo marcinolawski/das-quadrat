@@ -8,20 +8,20 @@
 
 import Foundation
 
-open class Updates: Endpoint {
+public class Updates: Endpoint {
     override var endpoint: String {
         return "updates"
     }
     
     /** https://developer.foursquare.com/docs/updates/updates */
-    open func get(_ updateId: String, completionHandler: ResponseClosure? = nil) -> Task {
+    public func get(updateId: String, completionHandler: ResponseClosure? = nil) -> Task {
         return self.getWithPath(updateId, parameters: nil, completionHandler: completionHandler)
     }
     
     // MARK: - General
     
     /** https://developer.foursquare.com/docs/updates/notifications */
-    open func notifications(_ limit: String?, completionHandler: ResponseClosure? = nil) -> Task {
+    public func notifications(limit: String?, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "notifications"
         var parameters: Parameters?
         if let limit = limit {
@@ -33,7 +33,7 @@ open class Updates: Endpoint {
     // MARK: - Actions
     
     /** https://developer.foursquare.com/docs/updates/marknotificationsread */
-    open func notifications(_ highWatermark: String, completionHandler: ResponseClosure? = nil) -> Task {
+    public func notifications(highWatermark: String, completionHandler: ResponseClosure? = nil) -> Task {
         let path = "marknotificationsread"
         let parameters = [Parameter.highWatermark: highWatermark]
         return self.postWithPath(path, parameters: parameters, completionHandler: completionHandler)
